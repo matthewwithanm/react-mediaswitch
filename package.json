@@ -44,6 +44,7 @@
     "url": "https://github.com/matthewwithanm/react-mediaswitch/issues"
   },
   "browserify-shim": {
-    "react": "global:React"
+    "react": "global:React",
+    "react/addons": "global:React"
   }
 }
