@@ -12,7 +12,7 @@ Choose your DOM based on media queries
   <MediaCase media="screen and (max-width: 800px)" default={true}>
     <div>A little bigger</div>
   </MediaCase>
-  <MediaCase media="screen and (max-width: 1500px)">
+  <MediaCase media="screen and (min-width: 800px)">
     <div>So big!</div>
   </MediaCase>
 </MediaSwitch>
@@ -40,7 +40,7 @@ You can also provide a `handler` to cases instead of children:
 <MediaSwitch>
   <MediaCase media="screen and (max-width: 400px)" handler={SmallThing} />
   <MediaCase media="screen and (max-width: 800px)" handler={MediumThing} default={true} />
-  <MediaCase media="screen and (max-width: 1500px)" handler={BigThing} />
+  <MediaCase media="screen and (min-width: 800px)" handler={BigThing} />
 </MediaSwitch>
 ```
 
