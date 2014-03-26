@@ -26,8 +26,7 @@ Mark a default case for environments that don't support [matchMedia]:
 </MediaCase>
 ```
 
-Using server rendering and want something other than the default to be rendered
-on the server? Mark a case as "initial":
+Using server rendering? Mark a case as "initial":
 
 ```
 <MediaCase ... initial={true}>
