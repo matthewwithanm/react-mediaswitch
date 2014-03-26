@@ -21,13 +21,12 @@ gulp.task 'bump:minor', -> bump 'minor'
 gulp.task 'bump:patch', -> bump 'patch'
 
 gulp.task 'build:node', ->
-  gulp.src './src/*.coffee'
+  gulp.src './src/*.?(lit)coffee'
     .pipe coffee(bare: true).on('error', gutil.log)
     .pipe gulp.dest('./lib')
 
-gulp.task 'build:browser', ->
-  gulp.src './src/index.coffee'
-    .pipe coffee(bare: true).on('error', gutil.log)
+gulp.task 'build:browser', ['build:node'], ->
+  gulp.src './lib/*.js'
     .pipe browserify
       standalone: 'mediaswitch'
       transform: ['browserify-shim']
