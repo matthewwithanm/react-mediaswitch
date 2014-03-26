@@ -41,12 +41,10 @@ MediaSwitch = React.createClass
     if prevProps.children isnt @props.children
       @setState mediaQueryLists: @getMqls()
   removeMqlListeners: (mqls) ->
-    for own media, mql of mqls
-      mql.removeListener @handleMqlChange if mql
+    mql.removeListener @handleMqlChange for own media, mql of mqls when mql
     return
   addMqlListeners: (mqls) ->
-    for own media, mql of mqls
-      mql.addListener @handleMqlChange if mql
+    mql.addListener @handleMqlChange for own media, mql of mqls when mql
     return
   getMatchingCase: ->
     defaultCase = null
