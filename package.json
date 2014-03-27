@@ -1,6 +1,6 @@
 {
   "name": "react-mediaswitch",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Choose your DOM based on media queries",
   "main": "./lib/index.js",
   "directories": {
