@@ -7,6 +7,7 @@
   "description": "Choose your DOM based on media queries",
   "main": "./standalone/react-mediaswitch.js",
   "keywords": [
+    "react-component",
     "react",
     "media queries",
     "media query",
