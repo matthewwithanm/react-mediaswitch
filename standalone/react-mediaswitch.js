@@ -27,12 +27,16 @@ MediaCase = React.createClass({
 module.exports = MediaCase;
 
 },{}],2:[function(_dereq_,module,exports){
-var MediaSwitch, PropTypes, React, cloneWithProps, div,
+var MediaSwitch, PropTypes, React, cloneWithProps, div, eq, extend,
   __hasProp = {}.hasOwnProperty;
 
 React = (window.React);
 
 cloneWithProps = (window.React).addons.cloneWithProps;
+
+eq = _dereq_('./eq');
+
+extend = _dereq_('xtend');
 
 div = React.DOM.div;
 
@@ -50,12 +54,18 @@ MediaSwitch = React.createClass({
   },
   getInitialState: function() {
     return {
-      mediaQueryLists: this.getMqls()
+      wasMounted: false,
+      mediaMatches: {}
     };
   },
-  getMqls: function() {
-    var mcase, media, mql, mqls, _i, _len, _ref;
+  componentWillMount: function() {
+    return this.updateMqls();
+  },
+  updateMqls: function() {
+    var listeners, mcase, media, mql, mqls, _i, _len, _ref;
+    this.removeMqlListeners();
     mqls = {};
+    listeners = [];
     _ref = this.props.children;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       mcase = _ref[_i];
@@ -64,66 +74,98 @@ MediaSwitch = React.createClass({
         throw new Error('Missing media prop');
       }
       if (mqls[media] == null) {
-        mql = typeof window !== "undefined" && window !== null ? typeof window.matchMedia === "function" ? window.matchMedia(media) : void 0 : void 0;
-        mqls[media] = mql || false;
+        if (mql = typeof window !== "undefined" && window !== null ? typeof window.matchMedia === "function" ? window.matchMedia(media) : void 0 : void 0) {
+          mqls[media] = mql;
+          mql.addListener(this.handleMqlChange);
+        }
       }
     }
-    return mqls;
+    this.mqls = mqls;
+    return this.updateMediaMatches();
   },
-  handleMqlChange: function() {
-    return this.forceUpdate();
-  },
-  componentDidMount: function() {
-    this.addMqlListeners(this.state.mediaQueryLists);
-    return this.forceUpdate();
-  },
-  componentDidUpdate: function(prevProps, prevState) {
-    var newMqls, oldMqls;
-    oldMqls = prevState.mediaQueryLists;
-    newMqls = this.state.mediaQueryLists;
-    if (oldMqls !== newMqls) {
-      this.removeMqlListeners(oldMqls);
-      this.addMqlListeners(newMqls);
-    }
-    if (prevProps.children !== this.props.children) {
-      return this.setState({
-        mediaQueryLists: this.getMqls()
-      });
-    }
-  },
-  removeMqlListeners: function(mqls) {
-    var media, mql;
-    for (media in mqls) {
-      if (!__hasProp.call(mqls, media)) continue;
-      mql = mqls[media];
-      if (mql) {
+  removeMqlListeners: function() {
+    var media, mql, _ref;
+    if (this.mqls) {
+      _ref = this.mqls;
+      for (media in _ref) {
+        if (!__hasProp.call(_ref, media)) continue;
+        mql = _ref[media];
         mql.removeListener(this.handleMqlChange);
       }
     }
   },
-  addMqlListeners: function(mqls) {
-    var media, mql;
-    for (media in mqls) {
-      if (!__hasProp.call(mqls, media)) continue;
-      mql = mqls[media];
-      if (mql) {
-        mql.addListener(this.handleMqlChange);
+  setMqlState: function(media, matches) {
+    var newValue;
+    if (this.state.mediaMatches[media] !== matches) {
+      newValue = extend(this.state.mediaMatches);
+      newValue[media] = matches;
+      return this.setState({
+        mediaMatches: newValue
+      });
+    }
+  },
+  handleMqlChange: function(changedMql) {
+    var media, mql, _ref;
+    _ref = this.mqls;
+    for (media in _ref) {
+      if (!__hasProp.call(_ref, media)) continue;
+      mql = _ref[media];
+      if (mql.media === changedMql.media) {
+        this.setMqlState(mql.media, mql.matches);
       }
     }
   },
+  shouldComponentUpdate: function(nextProps, nextState) {
+    if (nextProps.children !== this.props.children) {
+      return true;
+    }
+    if (nextState.wasMounted !== this.state.wasMounted) {
+      return true;
+    }
+    if (!eq(nextState.mediaMatches, this.state.mediaMatches)) {
+      return true;
+    }
+    return false;
+  },
+  componentDidMount: function() {
+    return this.setState({
+      wasMounted: true
+    });
+  },
+  componentWillUnmount: function() {
+    return this.removeMqlListeners();
+  },
+  updateMediaMatches: function() {
+    var media, mediaMatches, mql, _ref;
+    mediaMatches = {};
+    _ref = this.mqls;
+    for (media in _ref) {
+      if (!__hasProp.call(_ref, media)) continue;
+      mql = _ref[media];
+      mediaMatches[media] = mql.matches;
+    }
+    return this.setState({
+      mediaMatches: mediaMatches
+    });
+  },
+  componentDidUpdate: function(prevProps, prevState) {
+    if (prevProps.children !== this.props.children) {
+      return this.updateMqls();
+    }
+  },
   getMatchingCase: function() {
-    var defaultCase, isMounted, matchingCase, mcase, _i, _len, _ref, _ref1;
+    var defaultCase, matchingCase, mcase, wasMounted, _i, _len, _ref;
     defaultCase = null;
     matchingCase = null;
-    isMounted = this.isMounted();
+    wasMounted = this.state.wasMounted;
     _ref = this.props.children;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       mcase = _ref[_i];
-      if (mcase.props.initial && !isMounted) {
+      if (mcase.props.initial && !wasMounted) {
         return mcase;
       }
-      if ((_ref1 = this.state.mediaQueryLists[mcase.props.media]) != null ? _ref1.matches : void 0) {
-        if (isMounted) {
+      if (this.state.mediaMatches[mcase.props.media]) {
+        if (wasMounted) {
           return mcase;
         } else {
           if (matchingCase == null) {
@@ -154,7 +196,27 @@ MediaSwitch = React.createClass({
 
 module.exports = MediaSwitch;
 
-},{}],3:[function(_dereq_,module,exports){
+},{"./eq":3,"xtend":6}],3:[function(_dereq_,module,exports){
+var kvPairsAreEqual,
+  __hasProp = {}.hasOwnProperty;
+
+kvPairsAreEqual = function(a, b) {
+  var k, v;
+  for (k in a) {
+    if (!__hasProp.call(a, k)) continue;
+    v = a[k];
+    if (b[k] !== v) {
+      return false;
+    }
+  }
+  return true;
+};
+
+module.exports = function(a, b) {
+  return kvPairsAreEqual(a, b) && kvPairsAreEqual(b, a);
+};
+
+},{}],4:[function(_dereq_,module,exports){
 var MediaCase, MediaSwitch;
 
 MediaSwitch = _dereq_('./MediaSwitch');
@@ -166,6 +228,40 @@ module.exports = {
   MediaCase: MediaCase
 };
 
-},{"./MediaCase":1,"./MediaSwitch":2}]},{},[3])
-(3)
+},{"./MediaCase":1,"./MediaSwitch":2}],5:[function(_dereq_,module,exports){
+module.exports = hasKeys
+
+function hasKeys(source) {
+    return source !== null &&
+        (typeof source === "object" ||
+        typeof source === "function")
+}
+
+},{}],6:[function(_dereq_,module,exports){
+var hasKeys = _dereq_("./has-keys")
+
+module.exports = extend
+
+function extend() {
+    var target = {}
+
+    for (var i = 0; i < arguments.length; i++) {
+        var source = arguments[i]
+
+        if (!hasKeys(source)) {
+            continue
+        }
+
+        for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+                target[key] = source[key]
+            }
+        }
+    }
+
+    return target
+}
+
+},{"./has-keys":5}]},{},[4])
+(4)
 });
