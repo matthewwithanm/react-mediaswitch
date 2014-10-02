@@ -38,7 +38,8 @@
     "media queries",
     "media query",
     "matchMedia",
-    "component"
+    "component",
+    "responsive"
   ],
   "author": "Matthew Dapena-Tretter <m@tthewwithanm.com>",
   "license": "MIT",
